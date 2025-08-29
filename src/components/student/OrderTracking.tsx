@@ -15,10 +15,11 @@ import { Order } from '../../types';
 
 export const OrderTracking: React.FC = () => {
   const { user } = useAuth();
-  const { orders, reviews, addReview } = useApp();
+  const { orders, reviews, addReview, cartItems, clearCart, addToCart } = useApp();
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewData, setReviewData] = useState({ rating: 5, comment: '', itemId: '' });
+  const [showReorderSuccess, setShowReorderSuccess] = useState(false);
 
   const userOrders = orders
     .filter(order => order.userId === user?.id)
@@ -41,6 +42,19 @@ export const OrderTracking: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
+  const handleReorder = (order: Order) => {
+    // Clear current cart
+    clearCart();
+    
+    // Add all items from the previous order
+    order.items.forEach(item => {
+      addToCart(item, item.quantity);
+    });
+    
+    // Show success message
+    setShowReorderSuccess(true);
+    setTimeout(() => setShowReorderSuccess(false), 3000);
+  };
   const getStatusIcon = (status: Order['status']) => {
     switch (status) {
       case 'ordered':

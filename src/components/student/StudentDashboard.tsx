@@ -16,10 +16,15 @@ import { useAuth } from '../../contexts/AuthContext';
 import { MenuBrowser } from './MenuBrowser';
 import { Cart } from './Cart';
 import { OrderTracking } from './OrderTracking';
+import { Settings } from '../common/Settings';
 
 type TabType = 'menu' | 'cart' | 'orders' | 'profile';
 
-export const StudentDashboard: React.FC = () => {
+interface StudentDashboardProps {
+  onNavigate?: (page: string) => void;
+}
+
+export const StudentDashboard: React.FC<StudentDashboardProps> = ({ onNavigate }) => {
   const { user } = useAuth();
   const { 
     orders, 
@@ -29,7 +34,7 @@ export const StudentDashboard: React.FC = () => {
     reviews 
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState<TabType>('menu');
+  const [activeTab, setActiveTab] = useState<TabType>('profile');
 
   const userOrders = orders.filter(order => order.userId === user?.id);
   const activeOrders = userOrders.filter(order => 

@@ -202,7 +202,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           time: timeString,
           available: true,
           capacity: 20,
-          booked: Math.floor(Math.random() * 10)
+          booked: 0
         });
       }
     }

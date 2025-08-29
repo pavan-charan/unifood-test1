@@ -15,10 +15,15 @@ import { useApp } from '../../contexts/AppContext';
 import { InventoryManager } from './InventoryManager';
 import { OrderManager } from './OrderManager';
 import { Analytics } from './Analytics';
+import { Settings } from '../common/Settings';
 
 type TabType = 'overview' | 'orders' | 'inventory' | 'analytics';
 
-export const ManagerDashboard: React.FC = () => {
+interface ManagerDashboardProps {
+  onNavigate?: (page: string) => void;
+}
+
+export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ onNavigate }) => {
   const { orders, menuItems } = useApp();
   const [activeTab, setActiveTab] = useState<TabType>('overview');
 

@@ -7,6 +7,7 @@ import {
   Leaf, 
   Flame,
   Plus,
+  Minus,
   Heart,
   ShoppingCart
 } from 'lucide-react';
@@ -17,6 +18,8 @@ export const MenuBrowser: React.FC = () => {
   const { 
     menuItems, 
     addToCart, 
+    cartItems,
+    updateCartQuantity,
     searchTerm, 
     setSearchTerm,
     selectedCategory,
@@ -56,6 +59,9 @@ export const MenuBrowser: React.FC = () => {
     );
   };
 
+  const getCartItem = (itemId: string) => {
+    return cartItems.find(item => item.id === itemId);
+  };
   const renderSpiceLevel = (level: number) => {
     return (
       <div className="flex items-center space-x-1">
@@ -71,6 +77,42 @@ export const MenuBrowser: React.FC = () => {
     );
   };
 
+  const renderCartButton = (item: MenuItem) => {
+    const cartItem = getCartItem(item.id);
+    
+    if (cartItem) {
+      return (
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
+            <button
+              onClick={() => updateCartQuantity(item.id, cartItem.quantity - 1)}
+              className="w-6 h-6 rounded-full bg-white border border-blue-300 flex items-center justify-center hover:bg-blue-50 transition-colors"
+            >
+              <Minus className="w-3 h-3 text-blue-600" />
+            </button>
+            <span className="text-sm font-medium text-blue-800 w-8 text-center">{cartItem.quantity}</span>
+            <button
+              onClick={() => updateCartQuantity(item.id, cartItem.quantity + 1)}
+              className="w-6 h-6 rounded-full bg-white border border-blue-300 flex items-center justify-center hover:bg-blue-50 transition-colors"
+            >
+              <Plus className="w-3 h-3 text-blue-600" />
+            </button>
+          </div>
+          <span className="text-sm font-medium text-blue-600">In Cart</span>
+        </div>
+      );
+    }
+
+    return (
+      <button
+        onClick={() => addToCart(item)}
+        className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors flex items-center justify-center space-x-2"
+      >
+        <ShoppingCart className="w-4 h-4" />
+        <span>Add to Cart</span>
+      </button>
+    );
+  };
   return (
     <div className="space-y-6">
       {/* Search and Filters */}
@@ -170,6 +212,9 @@ export const MenuBrowser: React.FC = () => {
       {/* Menu Items Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredItems.map(item => (
+          const cartItem = getCartItem(item.id);
+          const isInCart = !!cartItem;
+          
           <div key={item.id} className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow">
             <div className="relative">
               <img
@@ -189,7 +234,9 @@ export const MenuBrowser: React.FC = () => {
               </button>
               {item.isVeg && (
                 <div className="absolute top-3 left-3 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1">
-                  <Leaf className="w-3 h-3" />
+            <div key={item.id} className={`bg-white rounded-lg shadow-sm border hover:shadow-md transition-all ${
+              isInCart ? 'ring-2 ring-blue-200 bg-blue-50' : ''
+            }`}>
                   <span>VEG</span>
                 </div>
               )}
@@ -224,29 +271,27 @@ export const MenuBrowser: React.FC = () => {
                   {renderSpiceLevel(item.spiceLevel)}
                 </div>
               )}
-
+                <div className="mb-4">
               <div className="mb-3">
-                <p className="text-xs text-gray-500 mb-1">Cuisine: {item.cuisine}</p>
-                <div className="flex flex-wrap gap-1">
-                  {item.allergens.map(allergen => (
-                    <span
-                      key={allergen}
-                      className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full"
-                    >
-                      {allergen}
-                    </span>
-                  ))}
+                  {item.allergens.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {item.allergens.map(allergen => (
+                        <span
+                          key={allergen}
+                          className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full"
+                        >
+                          {allergen}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
-
-              <button
-                onClick={() => addToCart(item)}
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors flex items-center justify-center space-x-2"
-              >
-                <ShoppingCart className="w-4 h-4" />
-                <span>Add to Cart</span>
+                {renderCartButton(item)}
               </button>
             </div>
+          );
+        })}
           </div>
         ))}
       </div>

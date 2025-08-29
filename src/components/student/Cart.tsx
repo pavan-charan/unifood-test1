@@ -6,6 +6,7 @@ import {
   Trash2, 
   Clock,
   CreditCard,
+  Wallet,
   CheckCircle,
   X
 } from 'lucide-react';
@@ -29,9 +30,42 @@ export const Cart: React.FC = () => {
   const [specialInstructions, setSpecialInstructions] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
   const [orderToken, setOrderToken] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('wallet');
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'failed'>('idle');
+
+  const taxAmount = cartTotal * 0.05;
+  const finalTotal = cartTotal + taxAmount;
+
+  const processPayment = async (): Promise<boolean> => {
+    setIsProcessingPayment(true);
+    setPaymentStatus('processing');
+    
+    // Simulate payment processing
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Simulate payment success/failure (90% success rate)
+    const success = Math.random() > 0.1;
+    
+    if (success) {
+      setPaymentStatus('success');
+      setIsProcessingPayment(false);
+      return true;
+    } else {
+      setPaymentStatus('failed');
+      setIsProcessingPayment(false);
+      return false;
+    }
+  };
 
   const handleCheckout = async () => {
     if (!selectedTimeSlot) return;
+
+    // Process payment first
+    const paymentSuccess = await processPayment();
+    if (!paymentSuccess) {
+      return;
+    }
 
     const orderId = await createOrder(selectedTimeSlot, specialInstructions);
     if (orderId) {
@@ -43,9 +77,20 @@ export const Cart: React.FC = () => {
         setShowCheckout(false);
         setSelectedTimeSlot('');
         setSpecialInstructions('');
+        setPaymentStatus('idle');
       }
     }
   };
+
+  // Filter time slots to show only future times
+  const availableTimeSlots = timeSlots.filter(slot => {
+    const now = new Date();
+    const [hours, minutes] = slot.time.split(':').map(Number);
+    const slotTime = new Date();
+    slotTime.setHours(hours, minutes, 0, 0);
+    
+    return slotTime > now;
+  });
 
   if (showSuccess) {
     return (
@@ -162,13 +207,13 @@ export const Cart: React.FC = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Tax (5%)</span>
-                  <span className="font-medium">₹{(cartTotal * 0.05).toFixed(2)}</span>
+                  <span className="font-medium">₹{taxAmount.toFixed(2)}</span>
                 </div>
                 <div className="border-t pt-3">
                   <div className="flex justify-between">
                     <span className="text-lg font-semibold">Total</span>
                     <span className="text-lg font-bold text-blue-600">
-                      ₹{(cartTotal * 1.05).toFixed(2)}
+                      ₹{finalTotal.toFixed(2)}
                     </span>
                   </div>
                 </div>
@@ -209,13 +254,53 @@ export const Cart: React.FC = () => {
               </div>
 
               <div className="p-6 space-y-6">
+                {/* Payment Method Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Payment Method
+                  </label>
+                  <div className="space-y-2">
+                    <label className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="wallet"
+                        checked={paymentMethod === 'wallet'}
+                        onChange={(e) => setPaymentMethod(e.target.value)}
+                        className="mr-3"
+                      />
+                      <Wallet className="w-5 h-5 text-blue-600 mr-3" />
+                      <div>
+                        <p className="font-medium text-gray-900">College Wallet</p>
+                        <p className="text-sm text-gray-600">Balance: ₹1,250</p>
+                      </div>
+                    </label>
+                    
+                    <label className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="card"
+                        checked={paymentMethod === 'card'}
+                        onChange={(e) => setPaymentMethod(e.target.value)}
+                        className="mr-3"
+                      />
+                      <CreditCard className="w-5 h-5 text-green-600 mr-3" />
+                      <div>
+                        <p className="font-medium text-gray-900">Debit/Credit Card</p>
+                        <p className="text-sm text-gray-600">Secure payment gateway</p>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
                 {/* Time Slot Selection */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3">
                     Select Pickup Time
                   </label>
                   <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
-                    {timeSlots.slice(0, 20).map(slot => (
+                    {availableTimeSlots.slice(0, 20).map(slot => (
                       <button
                         key={slot.time}
                         onClick={() => setSelectedTimeSlot(slot.time)}
@@ -227,9 +312,7 @@ export const Cart: React.FC = () => {
                         disabled={!slot.available}
                       >
                         <div className="font-medium">{slot.time}</div>
-                        <div className="text-xs opacity-75">
-                          {slot.booked}/{slot.capacity} booked
-                        </div>
+                        <div className="text-xs opacity-75">Available</div>
                       </button>
                     ))}
                   </div>
@@ -251,20 +334,56 @@ export const Cart: React.FC = () => {
 
                 {/* Order Total */}
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium">Total Amount</span>
-                    <span className="text-xl font-bold text-blue-600">
-                      ₹{(cartTotal * 1.05).toFixed(2)}
-                    </span>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>Subtotal</span>
+                      <span>₹{cartTotal.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span>Tax (5%)</span>
+                      <span>₹{taxAmount.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium">Total Amount</span>
+                      <span className="text-xl font-bold text-blue-600">
+                        ₹{finalTotal.toFixed(2)}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
+                {/* Payment Status */}
+                {paymentStatus === 'processing' && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-center space-x-2">
+                      <div className="animate-spin w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
+                      <span className="text-blue-800">Processing payment...</span>
+                    </div>
+                  </div>
+                )}
+
+                {paymentStatus === 'failed' && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <p className="text-red-800 text-sm">Payment failed. Please try again or use a different payment method.</p>
+                  </div>
+                )}
+
                 <button
                   onClick={handleCheckout}
-                  disabled={!selectedTimeSlot}
-                  className="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  disabled={!selectedTimeSlot || isProcessingPayment}
+                  className="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2"
                 >
-                  Place Order
+                  {isProcessingPayment ? (
+                    <>
+                      <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                      <span>Processing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="w-4 h-4" />
+                      <span>Pay & Place Order</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>

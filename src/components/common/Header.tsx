@@ -12,12 +12,20 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useApp } from '../../contexts/AppContext';
+import { CartDropdown } from './CartDropdown';
+import { NotificationDropdown } from './NotificationDropdown';
 
-export const Header: React.FC = () => {
+interface HeaderProps {
+  onNavigate: (page: string) => void;
+}
+
+export const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
   const { user, logout } = useAuth();
   const { cartItems, notifications } = useApp();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showCartDropdown, setShowCartDropdown] = useState(false);
+  const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
 
   const cartItemCount = cartItems.reduce((total, item) => total + item.quantity, 0);
   const unreadNotifications = notifications.filter(n => n.userId === user?.id && !n.read).length;
@@ -27,12 +35,22 @@ export const Header: React.FC = () => {
     setShowUserMenu(false);
   };
 
+  const handleLogoClick = () => {
+    onNavigate('profile');
+  };
+
+  const handleViewCart = () => {
+    onNavigate('cart');
+  };
   return (
     <header className="bg-white shadow-lg border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo and Brand */}
-          <div className="flex items-center space-x-3">
+          <button 
+            onClick={handleLogoClick}
+            className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
+          >
             <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
               <Utensils className="w-6 h-6 text-white" />
             </div>
@@ -43,14 +61,18 @@ export const Header: React.FC = () => {
                 <span>IIIT Kottayam</span>
               </div>
             </div>
-          </div>
+          </button>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6">
             {user?.role === 'student' && (
               <div className="flex items-center space-x-4">
                 {/* Cart */}
-                <button className="relative p-2 text-gray-600 hover:text-blue-600 transition-colors">
+                <div className="relative">
+                  <button 
+                    onClick={() => setShowCartDropdown(!showCartDropdown)}
+                    className="relative p-2 text-gray-600 hover:text-blue-600 transition-colors"
+                  >
                   <ShoppingCart className="w-6 h-6" />
                   {cartItemCount > 0 && (
                     <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
@@ -126,7 +148,13 @@ export const Header: React.FC = () => {
             <div className="py-4 space-y-2">
               {user?.role === 'student' && (
                 <div className="flex justify-center space-x-6 mb-4">
-                  <button className="relative p-3 text-gray-600 hover:text-blue-600 transition-colors">
+                  <button 
+                    onClick={() => {
+                      handleViewCart();
+                      setShowMobileMenu(false);
+                    }}
+                    className="relative p-3 text-gray-600 hover:text-blue-600 transition-colors"
+                  >
                     <ShoppingCart className="w-6 h-6" />
                     {cartItemCount > 0 && (
                       <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
@@ -134,14 +162,35 @@ export const Header: React.FC = () => {
                       </span>
                     )}
                   </button>
-                  <button className="relative p-3 text-gray-600 hover:text-blue-600 transition-colors">
+                  <CartDropdown 
+                    isOpen={showCartDropdown} 
+                    onClose={() => setShowCartDropdown(false)}
+                    onViewCart={handleViewCart}
+                  />
+                </div>
+                <div className="relative">
+                  <button 
+                    onClick={() => setShowNotificationDropdown(!showNotificationDropdown)}
+                    className="relative p-2 text-gray-600 hover:text-blue-600 transition-colors"
+                  >
                     <Bell className="w-6 h-6" />
                     {unreadNotifications > 0 && (
                       <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                         {unreadNotifications}
                       </span>
-                    )}
+              <button 
+                onClick={() => {
+                  onNavigate('settings');
+                  setShowMobileMenu(false);
+                }}
+                className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+              >
                   </button>
+                  <NotificationDropdown 
+                    isOpen={showNotificationDropdown} 
+                    onClose={() => setShowNotificationDropdown(false)}
+                  />
+                </div>
                 </div>
               )}
 
@@ -169,3 +218,10 @@ export const Header: React.FC = () => {
     </header>
   );
 };
+                    <button 
+                      onClick={() => {
+                        onNavigate('settings');
+                        setShowUserMenu(false);
+                      }}
+                      className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                    >

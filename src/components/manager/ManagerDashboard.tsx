@@ -3,7 +3,7 @@ import {
   BarChart3, 
   Package, 
   ClipboardList, 
-  Settings,
+  Settings as SettingsIcon,
   TrendingUp,
   Users,
   Clock,
@@ -184,7 +184,7 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ onNavigate }
             </button>
 
             <button className="flex flex-col items-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-500 hover:bg-gray-50 transition-colors">
-              <Settings className="w-8 h-8 text-gray-600 mb-2" />
+              <SettingsIcon className="w-8 h-8 text-gray-600 mb-2" />
               <span className="text-sm font-medium text-gray-900">Settings</span>
             </button>
           </div>

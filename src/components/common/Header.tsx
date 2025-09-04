@@ -19,13 +19,13 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
   const { user, logout } = useAuth();
-  const { cart, notifications } = useApp();
+  const { cartItems, notifications } = useApp();
   const [showCart, setShowCart] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
 
-  const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-  const unreadNotifications = notifications.filter(n => !n.isRead).length;
+  const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const unreadNotifications = notifications.filter(n => !n.read).length;
 
   const handleLogoClick = () => {
     onNavigate('profile');

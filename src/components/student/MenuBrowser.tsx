@@ -4,7 +4,7 @@ import { useApp } from '../../contexts/AppContext';
 import { MenuItem } from '../../types';
 
 export const MenuBrowser: React.FC = () => {
-  const { menuItems, addToCart, removeFromCart, cart, addToFavorites, removeFromFavorites, favorites } = useApp();
+  const { menuItems, addToCart, removeFromCart, cartItems, addToFavorites, removeFromFavorites, favorites } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedCuisine, setSelectedCuisine] = useState('all');
@@ -31,7 +31,7 @@ export const MenuBrowser: React.FC = () => {
   }, [menuItems, searchTerm, selectedCategory, selectedCuisine, priceRange, dietaryFilter]);
 
   const getCartQuantity = (itemId: string) => {
-    const cartItem = cart.find(item => item.id === itemId);
+    const cartItem = cartItems.find(item => item.id === itemId);
     return cartItem ? cartItem.quantity : 0;
   };
 

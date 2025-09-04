@@ -15,7 +15,6 @@ import { useApp } from '../../contexts/AppContext';
 import { InventoryManager } from './InventoryManager';
 import { OrderManager } from './OrderManager';
 import { Analytics } from './Analytics';
-import { Settings } from '../common/Settings';
 
 type TabType = 'overview' | 'orders' | 'inventory' | 'analytics';
 
